@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -9,6 +10,7 @@ import (
 type PlayerStore interface {
 	GetPlayerScore(name string) int
 	RecordWin(name string)
+	GetLeague() []Player
 }
 
 type PlayerServer struct {
@@ -16,23 +18,35 @@ type PlayerServer struct {
 	http.Handler
 }
 
+type Player struct {
+	Name string
+	Wins int
+}
+
 func NewPlayerServer(store PlayerStore) *PlayerServer {
 	p := new(PlayerServer)
 
 	p.store = store
-	router := http.NewServeMux()
 
-	router.Handle("/league", http.HandlerFunc(p.handleLeagues))
-	router.Handle("/players/", http.HandlerFunc(p.handlePlayers))
+	router := http.NewServeMux()
+	router.Handle("/league", http.HandlerFunc(p.leagueHandler))
+	router.Handle("/players/", http.HandlerFunc(p.playerHandler))
+
+	p.Handler = router
 
 	return p
 }
 
-func (p *PlayerServer) handleLeagues(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
+const contentType = "application/json"
+
+func (p *PlayerServer) leagueHandler(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("content-type", contentType)
+	json.NewEncoder(w).Encode(p.store.GetLeague())
+
 }
 
-func (p *PlayerServer) handlePlayers(w http.ResponseWriter, r *http.Request) {
+func (p *PlayerServer) playerHandler(w http.ResponseWriter, r *http.Request) {
 	player := strings.TrimPrefix(r.URL.Path, "/players/")
 
 	switch r.Method {
