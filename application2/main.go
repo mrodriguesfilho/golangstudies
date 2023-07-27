@@ -2,8 +2,11 @@ package main
 
 import (
 	"gitbook/application2/internal/infra/database"
+	"gitbook/application2/internal/infra/web"
 	"gitbook/application2/internal/usecases"
+	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	_ "github.com/lib/pq"
 )
 
@@ -11,19 +14,12 @@ func main() {
 	dbConnection := Init()
 	defer dbConnection.Close()
 
-	orderRepository := database.NewOrderRepository(dbConnection)
-	usecase := usecases.NewCalculateFinalPrice(orderRepository)
+	repository := database.NewOrderRepository(dbConnection)
+	priceCalculatorUseCase := usecases.NewCalculateFinalPrice(repository)
+	priceCalculatorHandler := web.NewPriceCalculatorHandler(priceCalculatorUseCase)
 
-	input := usecases.OrderInput{
-		ID:    "123",
-		Price: 10.0,
-		Tax:   1.0,
-	}
+	r := chi.NewRouter()
+	r.Post("/CalculatePrice", priceCalculatorHandler.CalculateFinalPriceHandler)
 
-	output, err := usecase.Execute(input)
-	if err != nil {
-		panic(err)
-	}
-
-	println(output)
+	http.ListenAndServe(":5050", r)
 }
