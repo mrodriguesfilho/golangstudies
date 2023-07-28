@@ -17,9 +17,12 @@ func main() {
 	repository := database.NewOrderRepository(dbConnection)
 	priceCalculatorUseCase := usecases.NewCalculateFinalPrice(repository)
 	priceCalculatorHandler := web.NewPriceCalculatorHandler(priceCalculatorUseCase)
+	getOrdersUseCase := usecases.NewGetOrders(repository)
+	getOrdersHandler := web.NewGetOrdersHandler(getOrdersUseCase)
 
 	r := chi.NewRouter()
 	r.Post("/CalculatePrice", priceCalculatorHandler.CalculateFinalPriceHandler)
+	r.Post("/GetOrders", getOrdersHandler.GetOrdersHandler)
 
 	http.ListenAndServe(":5050", r)
 }

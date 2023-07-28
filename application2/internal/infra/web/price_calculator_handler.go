@@ -6,9 +6,6 @@ import (
 	"net/http"
 )
 
-const contentType = "Content-Type"
-const applicationJson = "application-json"
-
 type PriceCalculatorHandler struct {
 	PriceCalculatorUseCase *usecases.CalculateFinalPrice
 }

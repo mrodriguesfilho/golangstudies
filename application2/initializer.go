@@ -33,6 +33,10 @@ func Init() *sql.DB {
 		panic(err)
 	}
 
+	if err = db.Ping(); err != nil {
+		panic(err)
+	}
+
 	fmt.Println("Connected sucessfully to the database")
 
 	return db

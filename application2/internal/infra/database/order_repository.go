@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"gitbook/application2/internal/entity"
 )
 
@@ -36,4 +37,18 @@ func (r *OrderRepository) GetTotalTransactions() (int, error) {
 	}
 
 	return total, nil
+}
+
+func (r *OrderRepository) GetOrderById(id string) (entity.Order, error) {
+	var orderFound entity.Order
+
+	row := r.Db.QueryRow("select id, price, tax, final_price from mowdb.tb_orders where id =$1", id)
+	err := row.Scan(&orderFound.ID, &orderFound.Price, &orderFound.Tax, &orderFound.FinalPrice)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return entity.Order{}, fmt.Errorf("Order with ID %s was not found", id)
+		}
+	}
+
+	return orderFound, nil
 }
